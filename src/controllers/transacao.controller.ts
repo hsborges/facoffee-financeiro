@@ -69,8 +69,9 @@ router.post(
 router.put(
   '/:destinatario/credito',
   validate({
+    destinatario: { isEmail: true, in: 'params' },
     transacao: { isUUID: true, in: 'body' },
-    status: { isString: true, in: 'body', isIn: { options: ['aprovado', 'rejeitado'] } },
+    status: { isString: true, in: 'body', isIn: { options: [['aprovado', 'rejeitado']] } },
     revisado_por: { isEmail: true, in: 'body' },
   }),
   async (req: Request, res: Response) => {
@@ -89,7 +90,7 @@ router.post(
     descricao: { optional: true, in: 'body' },
   }),
   async (req: Request, res: Response) => {
-    return res.json(await accountService.createDebito(req.body));
+    return res.json(await accountService.createDebito(req.data));
   },
 );
 
