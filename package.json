@@ -40,7 +40,9 @@
     "yamljs": "^0.3.0"
   },
   "scripts": {
+    "typeorm": "typeorm-ts-node-commonjs",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "typeorm": "typeorm-ts-node-commonjs"
+    "build": "tsc",
+    "start": "node dist/index.js"
   }
 }
