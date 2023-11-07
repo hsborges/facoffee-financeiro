@@ -27,7 +27,7 @@ const router = Router();
 
 router.get(
   '/:destinatario/saldo',
-  validate({ destinatario: { isEmail: true, in: 'params' } }),
+  validate({ destinatario: { isUUID: true, in: 'params' } }),
   async (req: Request<{ destinatario: string }>, res: Response) => {
     return res.json(await accountService.summaryByDestinatario(req.params.destinatario));
   },
@@ -35,7 +35,7 @@ router.get(
 
 router.get(
   '/:destinatario/extrato',
-  validate({ destinatario: { isEmail: true, in: 'params' } }),
+  validate({ destinatario: { isUUID: true, in: 'params' } }),
   async (req: Request<{ destinatario: string }>, res: Response) => {
     return res.json(await accountService.findByDestinatario(req.params.destinatario));
   },
@@ -46,7 +46,7 @@ router.post(
   upload.single('comprovante'),
   validate(
     {
-      destinatario: { isEmail: true, in: 'params' },
+      destinatario: { isUUID: true, in: 'params' },
       valor: { isNumeric: true, in: 'body', toInt: true },
       referencia: { notEmpty: true, in: 'body' },
       emissor: { notEmpty: true, in: 'body' },
@@ -69,10 +69,10 @@ router.post(
 router.put(
   '/:destinatario/credito',
   validate({
-    destinatario: { isEmail: true, in: 'params' },
+    destinatario: { isUUID: true, in: 'params' },
     transacao: { isUUID: true, in: 'body' },
     status: { isString: true, in: 'body', isIn: { options: [['aprovado', 'rejeitado']] } },
-    revisado_por: { isEmail: true, in: 'body' },
+    revisado_por: { isUUID: true, in: 'body' },
   }),
   async (req: Request, res: Response) => {
     const { transacao, ...data } = req.data;
@@ -83,7 +83,7 @@ router.put(
 router.post(
   '/:destinatario/debito',
   validate({
-    destinatario: { isEmail: true, in: 'params' },
+    destinatario: { isUUID: true, in: 'params' },
     valor: { isNumeric: true, in: 'body', toInt: true },
     referencia: { notEmpty: true, in: 'body' },
     emissor: { notEmpty: true, in: 'body' },
