@@ -300,3 +300,11 @@ components:
               descricao:
                 type: string
                 description: Descrição da transação
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
