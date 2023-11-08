@@ -5,6 +5,7 @@ import { upload } from '../utils/multer';
 import { Schema, checkSchema, matchedData, validationResult } from 'express-validator';
 import { existsSync, rmSync } from 'fs';
 import { join } from 'path';
+import { hasPermission, isAuthenticated } from '../middlewares/auth';
 
 const validate = (schema: Schema, opts?: { onError: (error: Error, req: Request) => any }) => {
   return [
@@ -28,6 +29,7 @@ const router = Router();
 router.get(
   '/:destinatario/saldo',
   validate({ destinatario: { isUUID: true, in: 'params' } }),
+  hasPermission((req) => req.params.destinatario),
   async (req: Request<{ destinatario: string }>, res: Response) => {
     return res.json(await accountService.summaryByDestinatario(req.params.destinatario));
   },
@@ -36,6 +38,7 @@ router.get(
 router.get(
   '/:destinatario/extrato',
   validate({ destinatario: { isUUID: true, in: 'params' } }),
+  hasPermission((req) => req.params.destinatario),
   async (req: Request<{ destinatario: string }>, res: Response) => {
     return res.json(await accountService.findByDestinatario(req.params.destinatario));
   },
@@ -43,13 +46,13 @@ router.get(
 
 router.post(
   '/:destinatario/credito',
+  isAuthenticated(),
   upload.single('comprovante'),
   validate(
     {
       destinatario: { isUUID: true, in: 'params' },
       valor: { isNumeric: true, in: 'body', toInt: true },
       referencia: { notEmpty: true, in: 'body' },
-      emissor: { notEmpty: true, in: 'body' },
       comprovante: { notEmpty: true, in: 'body' },
       descricao: { optional: true, in: 'body' },
     },
@@ -62,7 +65,7 @@ router.post(
     },
   ),
   async (req: Request<{ destinatario: string }>, res: Response) => {
-    return res.json(await accountService.createDeposito(req.data));
+    return res.json(await accountService.createDeposito({ ...req.data, emissor: req.user?.content.sub }));
   },
 );
 
@@ -72,9 +75,10 @@ router.put(
     destinatario: { isUUID: true, in: 'params' },
     transacao: { isUUID: true, in: 'body' },
     status: { isString: true, in: 'body', isIn: { options: [['aprovado', 'rejeitado']] } },
-    revisado_por: { isUUID: true, in: 'body' },
   }),
+  hasPermission(),
   async (req: Request, res: Response) => {
+    req.data.revisado_por = req.user?.content.sub;
     const { transacao, ...data } = req.data;
     return res.json(await accountService.reviewDeposito(transacao, data));
   },
@@ -86,11 +90,11 @@ router.post(
     destinatario: { isUUID: true, in: 'params' },
     valor: { isNumeric: true, in: 'body', toInt: true },
     referencia: { notEmpty: true, in: 'body' },
-    emissor: { notEmpty: true, in: 'body' },
     descricao: { optional: true, in: 'body' },
   }),
+  hasPermission((req) => req.params.destinatario),
   async (req: Request, res: Response) => {
-    return res.json(await accountService.createDebito(req.data));
+    return res.json(await accountService.createDebito({ ...req.data, emissor: req.user?.content.sub }));
   },
 );
 
