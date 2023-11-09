@@ -1,0 +1,422 @@
+_type: export
+__export_format: 4
+__export_date: 2023-11-09T02:09:27.266Z
+__export_source: insomnia.desktop.app:v8.3.0
+resources:
+  - _id: req_182ef464fb78402c82ded0b23004ac64
+    parentId: fld_27bc26429c254f7eb0b68ab26e304c8b
+    modified: 1699476247852
+    created: 1699452066482
+    url: "{{ _.kc_base_url }}/realms/{{ _.kc_realm
+      }}/.well-known/openid-configuration"
+    name: Informações do servidor
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers:
+      - name: User-Agent
+        value: insomnia/8.3.0
+    authentication: {}
+    metaSortKey: -1699452133028
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: fld_27bc26429c254f7eb0b68ab26e304c8b
+    parentId: wrk_dfb7ffadb87b4a29bb2126ee37c0e5ec
+    modified: 1699451891319
+    created: 1699451891319
+    name: Auth
+    description: ""
+    environment: {}
+    environmentPropertyOrder: null
+    metaSortKey: -1699451891319
+    _type: request_group
+  - _id: wrk_dfb7ffadb87b4a29bb2126ee37c0e5ec
+    parentId: null
+    modified: 1698779533072
+    created: 1698779533072
+    name: Facoffe
+    description: ""
+    scope: collection
+    _type: workspace
+  - _id: req_b2ccf903924e47eca1c15b819793fbd3
+    parentId: fld_27bc26429c254f7eb0b68ab26e304c8b
+    modified: 1699494121214
+    created: 1699452003737
+    url: "{{ _.kc_base_url }}/realms/{{ _.kc_realm }}/protocol/openid-connect/token"
+    name: Obter token
+    description: ""
+    method: POST
+    body:
+      mimeType: application/x-www-form-urlencoded
+      params:
+        - name: client_id
+          value: "{{ _.kc_client_id }}"
+          id: pair_acdb7b584c3d4cce93023ef2a4cafded
+        - name: grant_type
+          value: password
+          id: pair_e378e6612e2f4272bfe100a7f882ca08
+        - name: username
+          fileName: gmail.com
+          type: text
+          value: "{{ _.kc_username }}"
+          id: pair_e83676c4066f416e81cf7fed534a08ba
+          multiline: false
+        - name: password
+          value: "{{ _.kc_password }}"
+          id: pair_afc6bf626b444afe966e6ec58376f735
+        - name: scope
+          value: openid
+          id: pair_3decb4c6704241f399ec272049a20fc2
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/x-www-form-urlencoded
+    authentication: {}
+    metaSortKey: -1699452003737
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_8990423c8aa04850a6d71a245981617e
+    parentId: fld_27bc26429c254f7eb0b68ab26e304c8b
+    modified: 1699495124877
+    created: 1699494042153
+    url: "{{ _.kc_base_url }}/realms/{{ _.kc_realm }}/protocol/openid-connect/token"
+    name: Atualizar token
+    description: ""
+    method: POST
+    body:
+      mimeType: application/x-www-form-urlencoded
+      params:
+        - name: client_id
+          value: "{{ _.kc_client_id }}"
+          id: pair_acdb7b584c3d4cce93023ef2a4cafded
+        - name: grant_type
+          value: refresh_token
+          id: pair_e378e6612e2f4272bfe100a7f882ca08
+        - name: scope
+          value: openid
+          id: pair_3decb4c6704241f399ec272049a20fc2
+        - id: pair_3ea98295036e482c9de6cc2374532373
+          name: refresh_token
+          value: "{% response 'body', 'req_b2ccf903924e47eca1c15b819793fbd3',
+            'b64::JC5yZWZyZXNoX3Rva2Vu::46b', 'never', 60 %}"
+          description: ""
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/x-www-form-urlencoded
+    authentication: {}
+    metaSortKey: -1699452003687
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_d4fac55d26684da3bd7fc314fa582daa
+    parentId: fld_27bc26429c254f7eb0b68ab26e304c8b
+    modified: 1699495116334
+    created: 1699452132928
+    url: "{{ _.kc_base_url }}/realms/{{ _.kc_realm
+      }}/protocol/openid-connect/userinfo"
+    name: Validar informações
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers:
+      - name: User-Agent
+        value: insomnia/8.3.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_8990423c8aa04850a6d71a245981617e',
+        'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+    metaSortKey: -1699452003637
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_ba78f582615f401aa3a9a65036143427
+    parentId: fld_1aab39784e8a421496543d592f6ddc5c
+    modified: 1699494466350
+    created: 1698869872435
+    url: "{{ _.fin_base_url }}/api/transacoes/saldo"
+    name: Consulta saldo
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers:
+      - name: User-Agent
+        value: insomnia/8.3.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_8990423c8aa04850a6d71a245981617e',
+        'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+      disabled: false
+    metaSortKey: -1699451864369
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: fld_1aab39784e8a421496543d592f6ddc5c
+    parentId: wrk_dfb7ffadb87b4a29bb2126ee37c0e5ec
+    modified: 1699451855275
+    created: 1699451855275
+    name: Financeiro
+    description: ""
+    environment: {}
+    environmentPropertyOrder: null
+    metaSortKey: -1699451855275
+    _type: request_group
+  - _id: req_74f8c64d86b540acb76f212b3d297fce
+    parentId: fld_1aab39784e8a421496543d592f6ddc5c
+    modified: 1699494484876
+    created: 1698867523024
+    url: "{{ _.fin_base_url }}/api/transacoes/extrato"
+    name: Consulta transações
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers:
+      - name: User-Agent
+        value: insomnia/8.3.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_8990423c8aa04850a6d71a245981617e',
+        'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+      disabled: false
+    metaSortKey: -1699451864319
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_960ac96b587a47529731c2a7878a5ac4
+    parentId: fld_1aab39784e8a421496543d592f6ddc5c
+    modified: 1699494495732
+    created: 1698865010052
+    url: "{{ _.fin_base_url }}/api/transacoes/credito"
+    name: Realiza deposito
+    description: ""
+    method: POST
+    body:
+      mimeType: multipart/form-data
+      params:
+        - id: pair_7fcf59c01dd94d19a291f2d07aa06b97
+          name: comprovante
+          value: ""
+          description: ""
+          type: file
+          fileName: /home/hudson/Downloads/Certificado-Awdren Fontao.pdf
+          disabled: false
+        - id: pair_74adeb9b95004a40935ab8926a2dbba4
+          name: valor
+          value: "40"
+          description: ""
+        - id: pair_4cade5a0d68c4a8fa5c7d16bfcbdea99
+          name: referencia
+          value: jan-2024
+          description: ""
+          disabled: false
+        - id: pair_f509e222ead44f1fbe1151bed0fb72ec
+          name: descricao
+          value: pagamento referente ao mes de janeiro de 2024
+          description: ""
+          disabled: false
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: multipart/form-data
+      - name: User-Agent
+        value: insomnia/8.3.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_8990423c8aa04850a6d71a245981617e',
+        'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+    metaSortKey: -1699451864294
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_9838246e9f054c13b186c8b7a1e4bd4c
+    parentId: fld_1aab39784e8a421496543d592f6ddc5c
+    modified: 1699494549000
+    created: 1698868070843
+    url: "{{ _.fin_base_url }}/api/transacoes/credito/{% response 'body',
+      'req_960ac96b587a47529731c2a7878a5ac4', 'b64::JC5pZA==::46b', 'never', 60
+      %}"
+    name: Revisar deposito
+    description: ""
+    method: PATCH
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"status": "aprovado"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/8.3.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_8990423c8aa04850a6d71a245981617e',
+        'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+    metaSortKey: -1699451864281.5
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_ea0e50eb3f2441ea8138951cc960793b
+    parentId: fld_1aab39784e8a421496543d592f6ddc5c
+    modified: 1699494692040
+    created: 1698868580698
+    url: "{{ _.fin_base_url }}/api/transacoes/debito"
+    name: Realiza debito
+    description: ""
+    method: POST
+    body:
+      mimeType: application/json
+      text: >-
+        {
+        	"destinatario": "{% response 'body', 'req_d4fac55d26684da3bd7fc314fa582daa', 'b64::JC5zdWI=::46b', 'never', 60 %}",
+        	"valor": 39,
+        	"referencia": "plano-jan-2024"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/8.3.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_8990423c8aa04850a6d71a245981617e',
+        'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+    metaSortKey: -1699451864269
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: env_e3caa05fa64f949980739becd29f3701f67fe84f
+    parentId: wrk_dfb7ffadb87b4a29bb2126ee37c0e5ec
+    modified: 1699495755756
+    created: 1698779533074
+    name: Base Environment
+    data:
+      fin_base_url: http://localhost:8081
+      kc_base_url: http://localhost:8080
+      kc_realm: <replace>
+      kc_client_id: <replace>
+      kc_username: <replace>
+      kc_password: <replace>
+    dataPropertyOrder:
+      "&":
+        - fin_base_url
+        - kc_base_url
+        - kc_realm
+        - kc_client_id
+        - kc_username
+        - kc_password
+    color: null
+    isPrivate: false
+    metaSortKey: 1698779533074
+    _type: environment
+  - _id: jar_e3caa05fa64f949980739becd29f3701f67fe84f
+    parentId: wrk_dfb7ffadb87b4a29bb2126ee37c0e5ec
+    modified: 1699493814702
+    created: 1698779533075
+    name: Default Jar
+    cookies:
+      - key: KEYCLOAK_LOCALE
+        expires: 1970-01-01T00:00:10.000Z
+        maxAge: 0
+        domain: localhost
+        path: /realms/facoffee-app/
+        httpOnly: true
+        extensions:
+          - Version=1
+          - Comment=Expiring cookie
+        hostOnly: true
+        creation: 2023-11-08T15:07:13.017Z
+        lastAccessed: 2023-11-08T17:15:22.896Z
+        id: "7548901692908492"
+      - key: KC_RESTART
+        expires: 1970-01-01T00:00:10.000Z
+        maxAge: 0
+        domain: localhost
+        path: /realms/facoffee-app/
+        httpOnly: true
+        extensions:
+          - Version=1
+        hostOnly: true
+        creation: 2023-11-08T15:07:13.018Z
+        lastAccessed: 2023-11-08T17:15:22.897Z
+        id: "005575903317835529"
+      - key: KEYCLOAK_LOCALE
+        expires: 1970-01-01T00:00:10.000Z
+        maxAge: 0
+        domain: 54.196.65.161
+        path: /realms/facoffee/
+        httpOnly: true
+        extensions:
+          - Version=1
+          - Comment=Expiring cookie
+        hostOnly: true
+        creation: 2023-11-08T20:46:39.107Z
+        lastAccessed: 2023-11-09T01:36:54.702Z
+        id: "5459936383504105"
+      - key: KC_RESTART
+        expires: 1970-01-01T00:00:10.000Z
+        maxAge: 0
+        domain: 54.196.65.161
+        path: /realms/facoffee/
+        httpOnly: true
+        extensions:
+          - Version=1
+        hostOnly: true
+        creation: 2023-11-08T20:46:39.107Z
+        lastAccessed: 2023-11-09T01:36:54.702Z
+        id: "476576082721234"
+    _type: cookie_jar
