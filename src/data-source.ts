@@ -5,5 +5,5 @@ export const AppDataSource = new DataSource({
   type: 'sqlite',
   database: join(__dirname, '..', 'data', 'db', `${process.env.NODE_ENV || 'development'}.sqlite`),
   synchronize: true,
-  entities: [path.join(__dirname, 'entities', '*.ts')],
+  entities: [path.join(__dirname, 'entities', '*.{js,ts}')],
 });
