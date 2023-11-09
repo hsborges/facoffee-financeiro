@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
+import morgan from 'morgan';
 
 import { AppDataSource } from './data-source';
 
@@ -18,6 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(compression());
 app.use(helmet());
 app.use(cors());
+app.use(morgan('tiny'));
 
 const PORT = process.env.PORT || 8080;
 const definition = YAML.load('./docs.yaml');
