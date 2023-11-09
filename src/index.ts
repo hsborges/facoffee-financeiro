@@ -25,7 +25,7 @@ const definition = YAML.load('./docs.yaml');
 definition.servers = [{ url: process.env.BASE_URL || `http://localhost:${PORT}/api` }];
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(definition));
-app.get('/', (req, res) => res.redirect(`${req.url.endsWith('/') ? req.url : `${req.url}/`}docs`));
+app.get('/', (req, res) => res.redirect(`${req.path.endsWith('/') ? req.path : `${req.path}/`}docs`));
 
 const apiRouter = Router();
 apiRouter.use('/transacoes', transacaoRouter);
