@@ -32,8 +32,8 @@ router.get(
   validate({ destinatario: { isUUID: true, in: 'query', optional: true } }),
   isAuthenticated(),
   async (req: Request<{ destinatario: string }>, res: Response, next: NextFunction) => {
-    if (req.query.destinatario && !req.user?.hasRealmRole('admin')) return next(new UnauthorizedError());
-    const id = (req.query.destinatario ? req.query.destinatario : req.user?.content.sub) as string;
+    if (req.query.destinatario && !req.user?.roles.includes('admin')) return next(new UnauthorizedError());
+    const id = (req.query.destinatario ? req.query.destinatario : req.user?.sub) as string;
     return res.json(await accountService.summaryByDestinatario(id));
   },
 );
@@ -43,7 +43,7 @@ router.get(
   validate({ destinatario: { isUUID: true, in: 'query', optional: true } }),
   isAuthenticated(),
   async (req: Request<{ destinatario: string }>, res: Response, next: NextFunction) => {
-    if (req.query.destinatario && !req.user?.hasRealmRole('admin')) return next(new UnauthorizedError());
+    if (req.query.destinatario && !req.user?.roles.includes('admin')) return next(new UnauthorizedError());
     return res.json(await accountService.findByDestinatario(req.params.destinatario));
   },
 );
@@ -72,8 +72,8 @@ router.post(
     return res.json(
       await accountService.createDeposito({
         ...req.data,
-        destinatario: req.data.destinatario || req.user?.content.sub,
-        emissor: req.user?.content.sub,
+        destinatario: req.data.destinatario || req.user?.sub,
+        emissor: req.user?.sub,
       }),
     );
   },
@@ -87,7 +87,7 @@ router.patch(
   }),
   hasRole('admin'),
   async (req: Request, res: Response) => {
-    req.data.revisado_por = req.user?.content.sub;
+    req.data.revisado_por = req.user?.sub;
     const { transacao, ...data } = req.data;
     return res.json(await accountService.reviewDeposito(transacao, data));
   },
@@ -103,7 +103,7 @@ router.post(
   }),
   hasRole('admin'),
   async (req: Request, res: Response) => {
-    return res.json(await accountService.createDebito({ ...req.data, emissor: req.user?.content.sub }));
+    return res.json(await accountService.createDebito({ ...req.data, emissor: req.user?.sub }));
   },
 );
 

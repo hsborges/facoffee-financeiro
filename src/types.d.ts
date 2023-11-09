@@ -1,4 +1,4 @@
-import { Token } from 'keycloak-backend';
+import { KeycloakJwtPayload } from './middlewares/auth';
 
 // to make the file a module and avoid the TypeScript error
 export {};
@@ -7,7 +7,7 @@ declare global {
   namespace Express {
     export interface Request {
       data: any;
-      user?: Token;
+      user?: KeycloakJwtPayload;
     }
   }
 
