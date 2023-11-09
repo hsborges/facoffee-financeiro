@@ -15,6 +15,7 @@ declare global {
     interface ProcessEnv {
       NODE_ENV: 'development' | 'prodroduction';
       PORT: string;
+      BASE_URL: string;
       KEYCLOAK_URL: string;
       KEYCLOAK_REALM: string;
       KEYCLOAK_CLIENT_ID: string;

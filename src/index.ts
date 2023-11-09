@@ -1,4 +1,4 @@
-import express, { Router } from 'express';
+import express, { NextFunction, Request, Response, Router } from 'express';
 import consola from 'consola';
 import compression from 'compression';
 import helmet from 'helmet';
@@ -9,6 +9,7 @@ import YAML from 'yamljs';
 import { AppDataSource } from './data-source';
 
 import transacaoRouter from './controllers/transacao.controller';
+import { BaseError } from './utils/errors';
 
 const app = express();
 
@@ -30,6 +31,11 @@ const apiRouter = Router();
 apiRouter.use('/transacoes', transacaoRouter);
 
 app.use('/api', apiRouter);
+
+app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+  if (error instanceof BaseError) return res.status(error.code).json({ error: error.message });
+  next(error);
+});
 
 AppDataSource.initialize().then(() =>
   app

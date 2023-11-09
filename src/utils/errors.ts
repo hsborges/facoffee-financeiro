@@ -20,3 +20,17 @@ export class DuplicatedError extends BaseError {
     this.name = 'DuplicatedError';
   }
 }
+
+export class UnauthorizedError extends BaseError {
+  constructor(message: string = 'Unauthorized') {
+    super(message, 401);
+    this.name = 'UnauthorizedError';
+  }
+}
+
+export class VerificationError extends BaseError {
+  constructor(message: string, code = 500) {
+    super(message, code || 500);
+    this.name = 'UnauthorizedError';
+  }
+}

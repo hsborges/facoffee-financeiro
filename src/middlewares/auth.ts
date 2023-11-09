@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { Keycloak } from 'keycloak-backend';
+import { UnauthorizedError, VerificationError } from '../utils/errors';
 
 const keycloak = new Keycloak({
   keycloak_base_url: process.env.KEYCLOAK_URL,
@@ -23,21 +24,20 @@ export function isAuthenticated() {
     } catch (error: any) {
       if (error.response) {
         const { status, statusText } = error.response;
-        return res.status(status).json({ message: statusText });
+        return next(new VerificationError(statusText, status));
       }
     }
 
-    return res.status(401).json({ message: 'Unauthorized' });
+    return next(new UnauthorizedError());
   };
 }
 
-export function hasPermission(owner?: (req: Request) => string) {
+export function hasRole(role: 'admin') {
   return async (req: Request, res: Response, next: NextFunction) => {
     const callback: NextFunction = (error) => {
       if (error) return next(error);
-      if (req.user?.hasRealmRole('admin')) return next();
-      if (owner && req.user?.content.sub === owner(req)) return next();
-      return res.status(401).json({ message: 'Unauthorized' });
+      if (req.user?.hasRealmRole(role)) return next();
+      return new UnauthorizedError();
     };
 
     return req.user ? callback() : isAuthenticated()(req, res, callback);

@@ -5,18 +5,14 @@ info:
   version: 0.9.0
   description: API para gerenciar transações financeiras da aplicação FACOFFEE
 
-servers:
-  - url: http://localhost:8080/api/
-    description: Servidor da aplicação
-
 tags:
   - name: Transacoes
     description: Operações de transações financeiras
 
 paths:
-  /transacoes/{destinatario}/saldo:
+  /transacoes/saldo:
     get:
-      summary: Obtém o saldo das movimentações financeiras de um destinatário
+      summary: Obtém o saldo das movimentações financeiras de um usuário
       tags:
         - Transacoes
       parameters:
@@ -35,10 +31,12 @@ paths:
                   pendente:
                     type: string
                     description: Saldo de transações pendentes de avaliação
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
 
-  /transacoes/{destinatario}/extrato:
+  /transacoes/extrato:
     get:
-      summary: Obtém o extrato das movimentações financeiras de um destinatário
+      summary: Obtém o extrato das movimentações financeiras de um usuário
       tags:
         - Transacoes
       parameters:
@@ -50,14 +48,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Transacao'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
 
-  /transacoes/{destinatario}/credito:
+  /transacoes/credito:
     post:
       summary: Realiza uma transação de crédito
       tags:
         - Transacoes
-      parameters:
-        - $ref: '#/components/parameters/destinatario'
       requestBody:
         $ref: '#/components/requestBodies/Credito'
       responses:
@@ -69,36 +67,35 @@ paths:
                 $ref: '#/components/schemas/Credito'
         '400':
           description: Erro de validação
-    put:
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /transacoes/credito/{transacao}:
+    patch:
       summary: Revisa uma transação de crédito
       tags:
         - Transacoes
       parameters:
-        - $ref: '#/components/parameters/destinatario'
+        - name: transacao
+          in: path
+          required: true
+          description: Identificador da transacao
+          schema:
+            type: string
+            format: uuid
       requestBody:
         content:
           application/json:
             schema:
               type: object
               required:
-                - transacao
                 - status
-                - revisado_por
               properties:
-                transacao:
-                  type: string
-                  format: uuid
-                  description: Identificador da transação
                 status:
                   type: string
                   description: Status da transação
                   enum:
                     - aprovado
                     - rejeitado
-                revisado_por:
-                  type: string
-                  format: uuid
-                  description: Identificador do revisor da transação
       responses:
         '200':
           description: Transação revisada com sucesso
@@ -108,13 +105,14 @@ paths:
                 $ref: '#/components/schemas/Credito'
         '400':
           description: Erro de validação
-  /transacoes/{destinatario}/debito:
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /transacoes/debito:
     post:
       summary: Realiza uma transação de débito
       tags:
         - Transacoes
-      parameters:
-        - $ref: '#/components/parameters/destinatario'
       requestBody:
         $ref: '#/components/requestBodies/Debito'
       responses:
@@ -213,13 +211,12 @@ components:
   parameters:
     destinatario:
       name: destinatario
-      in: path
-      required: true
+      in: query
+      required: false
       description: Identificador do destinatário
       schema:
         type: string
         format: uuid
-        example: 2b80f28d-1b96-48ef-a946-57b6655853c9
 
   requestBodies:
     Transacao:
@@ -258,6 +255,10 @@ components:
               - emissor
               - comprovante
             properties:
+              destinatario:
+                type: string
+                format: uuid
+                description: Identificador do destinatário
               referencia:
                 type: string
                 description: Referência da transação
@@ -283,28 +284,33 @@ components:
           schema:
             type: object
             required:
+              - destinatario
               - referencia
               - valor
-              - emissor
             properties:
+              destinatario:
+                type: string
+                format: uuid
+                description: Identificador do destinatario
               referencia:
                 type: string
                 description: Referência da transação
               valor:
                 type: integer
                 description: Valor da transação
-              emissor:
-                type: string
-                format: uuid
-                description: Identificador do emissor
               descricao:
                 type: string
                 description: Descrição da transação
+
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
+  responses:
+    UnauthorizedError:
+      description: Acesso não autorizado (token ausente ou inválido)
 
 security:
   - bearerAuth: []
