@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { Keycloak } from 'keycloak-backend';
-import { UnauthorizedError, VerificationError } from '../utils/errors';
+import { ServerError, UnauthorizedError } from '../utils/errors';
 
 const keycloak = new Keycloak({
   keycloak_base_url: process.env.KEYCLOAK_URL,
@@ -24,7 +24,7 @@ export function isAuthenticated() {
     } catch (error: any) {
       if (error.response) {
         const { status, statusText } = error.response;
-        return next(new VerificationError(statusText, status));
+        return next(new ServerError(JSON.stringify({ statusText, status })));
       }
     }
 
