@@ -7,34 +7,36 @@ export abstract class Transacao {
   public readonly id!: string;
 
   @Column()
-  public referencia!: string;
+  public readonly referencia!: string;
 
   @Column()
-  public valor!: number;
+  public readonly valor!: number;
 
   @CreateDateColumn()
-  public data_emissao!: Date;
+  public readonly data_emissao!: Date;
 
   @Column()
   @Index()
-  public emissor!: string;
+  public readonly emissor!: string;
 
   @Column()
   @Index()
-  public destinatario!: string;
+  public readonly destinatario!: string;
 
   @Column({ nullable: true })
-  public descricao?: string;
+  public readonly descricao?: string;
 
   @Column()
-  public readonly tipo!: string;
+  public readonly tipo: string = this.constructor.name;
 
-  constructor(referencia: string, valor: number, destinatario: string, emissor: string, descricao?: string) {
-    this.referencia = referencia;
-    this.valor = valor;
-    this.destinatario = destinatario;
-    this.emissor = emissor;
+  constructor(props: { referencia: string, valor: number, destinatario: string, emissor: string, descricao?: string }) {
+    if (props.valor <= 0) throw new Error('Valor inválido');
+
+    this.referencia = props.referencia;
+    this.valor = props.valor;
+    this.destinatario = props.destinatario;
+    this.emissor = props.emissor;
     this.data_emissao = new Date();
-    this.descricao = descricao;
+    this.descricao = props.descricao;
   }
 }

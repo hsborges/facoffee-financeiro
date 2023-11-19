@@ -1,8 +1,8 @@
+import { AppDataSource } from '../data-source';
+import { Credito } from '../entities/Credito';
+import { Debito } from '../entities/Debito';
 import { Transacao } from '../entities/Transacao';
 import { NotFoundError } from '../utils/errors';
-import { Credito } from '../entities/Credito';
-import { AppDataSource } from '../data-source';
-import { Debito } from '../entities/Debito';
 
 type ITransacao = {
   valor: number;
@@ -35,11 +35,7 @@ export async function createDebito(debito: ITransacao) {
 export async function reviewDeposito(id: string, revisao: { status: 'aprovado' | 'rejeitado'; revisado_por: string }) {
   const deposito = await creditoRepository.findOneBy({ id });
   if (!deposito) throw new NotFoundError('Depósito não encontrado');
-
-  deposito.status = revisao.status;
-  deposito.revisado_em = new Date();
-  deposito.revisado_por = revisao.revisado_por;
-  return creditoRepository.save(deposito);
+  return creditoRepository.save(deposito.revisar(revisao.status, revisao.revisado_por));
 }
 
 export async function summaryByDestinatario(id: string) {
