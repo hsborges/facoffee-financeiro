@@ -1,43 +1,37 @@
-export abstract class BaseError extends Error {
+export abstract class HttpError extends Error {
   public readonly code: number;
   constructor(message: string, code: number) {
     super(message);
     this.code = code;
-    this.name = 'BaseError';
   }
 }
 
-export class NotFoundError extends BaseError {
-  constructor(message: string) {
+export class NotFoundError extends HttpError {
+  constructor(message: string = 'Not found') {
     super(message, 404);
-    this.name = 'NotFoundError';
   }
 }
 
-export class DuplicatedError extends BaseError {
-  constructor(message: string) {
+export class DuplicatedError extends HttpError {
+  constructor(message: string = 'Duplicated resource') {
     super(message, 409);
-    this.name = 'DuplicatedError';
   }
 }
 
-export class UnauthorizedError extends BaseError {
+export class UnauthorizedError extends HttpError {
   constructor(message: string = 'Unauthorized') {
     super(message, 401);
-    this.name = 'UnauthorizedError';
   }
 }
 
-export class VerificationError extends BaseError {
-  constructor(message: string, code = 500) {
-    super(message, code || 500);
-    this.name = 'UnauthorizedError';
+export class ValidationError extends HttpError {
+  constructor(message: string = 'Validation error') {
+    super(message, 400);
   }
 }
 
-export class ServerError extends BaseError {
-  constructor(message: string) {
+export class ServerError extends HttpError {
+  constructor(message: string = 'Server error') {
     super(message, 500);
-    this.name = 'ServerError';
   }
 }

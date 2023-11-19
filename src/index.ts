@@ -1,16 +1,15 @@
-import express, { NextFunction, Request, Response, Router } from 'express';
-import consola from 'consola';
 import compression from 'compression';
-import helmet from 'helmet';
+import consola from 'consola';
 import cors from 'cors';
+import express, { NextFunction, Request, Response, Router } from 'express';
+import helmet from 'helmet';
+import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
-import morgan from 'morgan';
-
-import { AppDataSource } from './data-source';
 
 import transacaoRouter from './controllers/transacao.controller';
-import { BaseError } from './utils/errors';
+import { AppDataSource } from './data-source';
+import { HttpError } from './utils/errors';
 
 const app = express();
 
@@ -34,7 +33,7 @@ apiRouter.use('/transacoes', transacaoRouter);
 app.use('/api', apiRouter);
 
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
-  if (error instanceof BaseError) return res.status(error.code).json({ error: error.message });
+  if (error instanceof HttpError) return res.status(error.code).json({ error: error.message });
   next(error);
 });
 

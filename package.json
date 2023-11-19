@@ -6,6 +6,7 @@
   "author": "Hudson S. Borges <hudsonsilbor@gmail.com>",
   "license": "MIT",
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/compression": "^1.7.4",
     "@types/express": "^4.17.20",
     "@types/jest": "^29.5.7",
@@ -48,6 +49,7 @@
     "typeorm": "typeorm-ts-node-commonjs",
     "dev": "ts-node-dev -r dotenv/config --respawn --transpile-only src/index.ts",
     "build": "tsc",
-    "start": "node -r dotenv/config dist/index.js"
+    "start": "node -r dotenv/config dist/index.js",
+    "jest": "jest --coverage --collectCoverageFrom='src/**/*.{js,ts}'"
   }
 }

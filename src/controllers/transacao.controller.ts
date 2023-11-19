@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response, Router } from 'express';
-
-import * as accountService from '../services/transacao.service';
-import { upload } from '../utils/multer';
 import { Schema, checkSchema, matchedData, validationResult } from 'express-validator';
 import { existsSync, rmSync } from 'fs';
 import { join } from 'path';
+
 import { hasRole, isAuthenticated } from '../middlewares/auth';
+import { upload } from '../middlewares/multer';
+import * as accountService from '../services/transacao.service';
 import { UnauthorizedError } from '../utils/errors';
 
 const validate = (schema: Schema, opts?: { onError: (error: Error, req: Request) => any }) => {

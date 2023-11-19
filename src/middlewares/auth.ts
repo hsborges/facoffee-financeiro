@@ -35,10 +35,11 @@ function getKey(header: any, callback: (err: Error | null, key?: string) => any)
 }
 
 function verify(token: string) {
-  return new Promise<KeycloakJwtPayload & JwtPayload>((resolve, reject) => {
+  return new Promise<KeycloakJwtPayload>((resolve, reject) => {
     jsonwebtoken.verify(token, getKey, {}, function (err, decoded) {
       if (err) return reject(new UnauthorizedError(err.message || JSON.stringify(err)));
-      return resolve(decoded as KeycloakJwtPayload & JwtPayload);
+      const { realm_access, ...additional } = decoded as JwtPayload;
+      return resolve({ ...additional, roles: realm_access.roles || [] } as KeycloakJwtPayload);
     });
   });
 }
@@ -49,10 +50,8 @@ export function isAuthenticated() {
 
     if (token) {
       return verify(token)
-        .then(({ realm_access, ...decoded }) => {
-          req.user = { ...decoded, roles: realm_access.roles || [] };
-          return next();
-        })
+        .then((user) => (req.user = user))
+        .then(() => next())
         .catch((error) => next(error));
     }
 
