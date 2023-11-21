@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  keycloak:
+    build: https://github.com/hsborges/facoffee-auth.git
+    restart: unless-stopped
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USER:-facoffee}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-facoffeepass}
+    ports:
+      - "8090:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data/
+      - ./data/keycloak:/opt/keycloak/data/import
+      - ./data/keycloak:/opt/keycloak/data/export
+
+volumes:
+  keycloak_data:
+    driver: local

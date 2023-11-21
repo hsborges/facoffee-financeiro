@@ -7,7 +7,7 @@ import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 
-import transacaoRouter from './controllers/transacao.controller';
+import { router } from './controllers/TransacaoController';
 import { AppDataSource } from './data-source';
 import { HttpError } from './utils/errors';
 
@@ -28,7 +28,7 @@ definition.servers = [{ url: process.env.BASE_URL || `http://localhost:${PORT}/a
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(definition));
 
 const apiRouter = Router();
-apiRouter.use('/transacoes', transacaoRouter);
+apiRouter.use('/transacoes', router());
 
 app.use('/api', apiRouter);
 
