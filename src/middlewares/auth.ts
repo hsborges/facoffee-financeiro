@@ -64,7 +64,7 @@ export function hasRole(role: 'admin') {
     const callback: NextFunction = (error) => {
       if (error) return next(error);
       if (req.user?.roles.includes(role)) return next();
-      return new UnauthorizedError();
+      return next(new UnauthorizedError());
     };
 
     return req.user ? callback() : isAuthenticated()(req, res, callback);

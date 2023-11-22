@@ -1,9 +1,9 @@
 import { Repository } from 'typeorm';
 
-import { AppDataSource } from '../data-source';
 import { Credito } from '../entities/Credito';
 import { Debito } from '../entities/Debito';
 import { Transacao } from '../entities/Transacao';
+import { AppDataSource } from '../utils/data-source';
 import { NotFoundError } from '../utils/errors';
 
 type TTransacao = ConstructorParameters<typeof Transacao>[0];

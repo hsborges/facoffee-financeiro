@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import { Schema, checkSchema, matchedData, validationResult } from 'express-validator';
-import { existsSync, rmSync } from 'fs';
+import { writeFileSync } from 'fs';
 import { join } from 'path';
 
 import { hasRole, isAuthenticated } from '../middlewares/auth';
 import { upload } from '../middlewares/multer';
 import { TransacaoService } from '../services/TransacaoService';
-import { UnauthorizedError } from '../utils/errors';
+import { ServerError, UnauthorizedError } from '../utils/errors';
 
 const validate = (schema: Schema, opts?: { onError: (error: Error, req: Request) => any }) => {
   return [
@@ -25,13 +25,13 @@ const validate = (schema: Schema, opts?: { onError: (error: Error, req: Request)
   ];
 };
 
-export const router = (service: TransacaoService = new TransacaoService()) => {
+export const createRouter = (service: TransacaoService = new TransacaoService()) => {
   const router = Router();
 
   router.get(
     '/saldo',
-    validate({ destinatario: { isUUID: true, in: 'query', optional: true } }),
     isAuthenticated(),
+    validate({ destinatario: { isUUID: true, in: 'query', optional: true } }),
     async (req: Request<{ destinatario: string }>, res: Response, next: NextFunction) => {
       if (req.query.destinatario && !req.user?.roles.includes('admin')) return next(new UnauthorizedError());
       const id = (req.query.destinatario ? req.query.destinatario : req.user?.sub) as string;
@@ -41,8 +41,8 @@ export const router = (service: TransacaoService = new TransacaoService()) => {
 
   router.get(
     '/extrato',
-    validate({ destinatario: { isUUID: true, in: 'query', optional: true } }),
     isAuthenticated(),
+    validate({ destinatario: { isUUID: true, in: 'query', optional: true } }),
     async (req: Request<{ destinatario: string }>, res: Response, next: NextFunction) => {
       if (req.query.destinatario && !req.user?.roles.includes('admin')) return next(new UnauthorizedError());
       return res.json(await service.buscarPorDestinatario(req.params.destinatario));
@@ -53,40 +53,45 @@ export const router = (service: TransacaoService = new TransacaoService()) => {
     '/credito',
     isAuthenticated(),
     upload.single('comprovante'),
-    validate(
-      {
-        destinatario: { isUUID: true, in: 'body', optional: true },
-        valor: { isNumeric: true, in: 'body', toInt: true },
-        referencia: { notEmpty: true, in: 'body' },
-        comprovante: { notEmpty: true, in: 'body' },
-        descricao: { optional: true, in: 'body' },
+    validate({
+      destinatario: { isUUID: true, in: 'body', optional: true },
+      valor: { isNumeric: true, in: 'body', toFloat: true, custom: { options: (value) => value > 0 } },
+      referencia: { notEmpty: true, in: 'body' },
+      comprovante: {
+        custom: { options: (value, { req }) => !!req.file },
+        errorMessage: 'O campo comprovante é obrigatório',
       },
-      {
-        onError: (_, req) => {
-          if (!req.body.comprovante) return;
-          const filePath = join('uploads', req.body.comprovante);
-          return existsSync(filePath) && rmSync(filePath);
-        },
-      },
-    ),
+      descricao: { optional: true, in: 'body' },
+    }),
     async (req: Request<{ destinatario: string }>, res: Response) => {
+      const comprovante = `${Date.now()}-${req.file?.originalname}`;
+
       return res.json(
-        await service.creditar({
-          ...req.data,
-          destinatario: req.data.destinatario || req.user?.sub,
-          emissor: req.user?.sub,
-        }),
+        await service
+          .creditar({
+            ...req.data,
+            destinatario: req.data.destinatario || req.user?.sub,
+            emissor: req.user?.sub,
+            comprovante,
+          })
+
+          .then((resposta) => {
+            if (!req.file) throw new ServerError('Arquivo não encontrado');
+            writeFileSync(join(__dirname, '..', '..', 'data', 'uploads', comprovante), req.file.buffer);
+            return resposta;
+          }),
       );
     },
   );
 
   router.patch(
     '/credito/:transacao',
+    isAuthenticated(),
+    hasRole('admin'),
     validate({
       transacao: { isUUID: true, in: 'params' },
       status: { isString: true, in: 'body', isIn: { options: [['aprovado', 'rejeitado']] } },
     }),
-    hasRole('admin'),
     async (req: Request, res: Response) => {
       req.data.revisado_por = req.user?.sub;
       const { transacao, ...data } = req.data;
@@ -96,13 +101,14 @@ export const router = (service: TransacaoService = new TransacaoService()) => {
 
   router.post(
     '/debito',
+    isAuthenticated(),
+    hasRole('admin'),
     validate({
       destinatario: { isUUID: true, in: 'body' },
-      valor: { isNumeric: true, in: 'body', toInt: true },
+      valor: { isNumeric: true, in: 'body', toFloat: true, custom: { options: (value) => value > 0 } },
       referencia: { notEmpty: true, in: 'body' },
       descricao: { optional: true, in: 'body' },
     }),
-    hasRole('admin'),
     async (req: Request, res: Response) => {
       return res.json(await service.debitar({ ...req.data, emissor: req.user?.sub }));
     },

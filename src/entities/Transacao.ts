@@ -9,7 +9,7 @@ export abstract class Transacao {
   @Column()
   public readonly referencia!: string;
 
-  @Column()
+  @Column('decimal')
   public readonly valor!: number;
 
   @CreateDateColumn()
