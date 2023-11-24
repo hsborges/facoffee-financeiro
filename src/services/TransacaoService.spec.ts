@@ -31,7 +31,7 @@ function criaDadosFakeCredito(dest?: string): ConstructorParameters<typeof Credi
 describe('Testa TransacaoService', () => {
   let db: Array<Transacao> = [];
 
-  const repository = {
+  const repoMock = {
     save: jest.fn().mockImplementation((t: Transacao) => {
       if (!t.id) db.push(Object.assign(t, { id: faker.string.uuid() }));
       else db[db.findIndex((t2) => t2.id === t.id)] = t;
@@ -53,9 +53,13 @@ describe('Testa TransacaoService', () => {
         return true;
       });
     }),
-  };
+    manager: { transaction: jest.fn().mockImplementation((fn) => fn(repoMock)) },
+  } as unknown as Repository<Transacao>;
 
-  const service = new TransacaoService(repository as unknown as Repository<Transacao>);
+  const service = new TransacaoService({
+    repository: repoMock,
+    fileService: { save: jest.fn().mockImplementation(async () => void 0) },
+  });
 
   beforeEach(() => {
     db = [];
@@ -101,7 +105,11 @@ describe('Testa TransacaoService', () => {
       expect(resumo.saldo).toBe(0);
       expect(resumo.pendente).toBe(pendente);
 
-      const creditoFinal = await service.creditar(credito);
+      const creditoFinal = await service.creditar({
+        ...credito,
+        comprovante: { name: faker.system.fileName(), data: Buffer.from(faker.system.filePath()) },
+      });
+
       pendente += credito.valor;
       ids.push(creditoFinal.id);
 

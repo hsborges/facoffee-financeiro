@@ -39,4 +39,17 @@ export abstract class Transacao {
     this.data_emissao = new Date();
     this.descricao = props.descricao;
   }
+
+  public toJSON() {
+    return {
+      id: this.id,
+      referencia: this.referencia,
+      valor: this.valor,
+      data_emissao: this.data_emissao,
+      emissor: this.emissor,
+      destinatario: this.destinatario,
+      descricao: this.descricao,
+      tipo: this.tipo,
+    };
+  }
 }

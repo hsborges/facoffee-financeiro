@@ -1,10 +1,14 @@
 import { faker } from '@faker-js/faker';
+import e from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { JsonWebTokenError, JwtPayload } from 'jsonwebtoken';
 import supertest from 'supertest';
-import { FileResult, file } from 'tmp-promise';
+import { FileResult, dirSync, file, withFile } from 'tmp-promise';
 
 import { createApp } from '../app';
+import { Credito } from '../entities/Credito';
+import { LocalFileService } from '../services/FileService';
+import { TransacaoService } from '../services/TransacaoService';
 import { AppDataSource } from '../utils/data-source';
 import { createRouter } from './TransacaoController';
 
@@ -42,13 +46,12 @@ jest.mock('jsonwebtoken', () => ({
   }),
 }));
 
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  writeFileSync: jest.fn(),
-}));
-
 describe('Testa o controller de transações', () => {
-  const app = createApp([{ path: '/', router: createRouter() }]);
+  const { path, removeCallback } = dirSync({ unsafeCleanup: true });
+
+  const app = createApp([
+    { path: '/', router: createRouter(new TransacaoService({ fileService: new LocalFileService(path) })) },
+  ]);
 
   const caminhos = {
     '/saldo': () => supertest(app).get('/saldo'),
@@ -59,7 +62,11 @@ describe('Testa o controller de transações', () => {
   };
 
   beforeAll(async () => AppDataSource.initialize());
-  afterAll(async () => AppDataSource.destroy());
+
+  afterAll(async () => {
+    AppDataSource.destroy();
+    removeCallback();
+  });
 
   afterEach(async () => AppDataSource.dropDatabase().then(() => AppDataSource.synchronize()));
 
@@ -191,7 +198,6 @@ describe('Testa o controller de transações', () => {
     let tmpFile: FileResult | null = null;
 
     const validDebitoData: Record<string, any> = {
-      destinatario: faker.string.uuid(),
       valor: faker.number.float(),
       referencia: faker.string.hexadecimal(),
       descricao: faker.lorem.sentence(),
@@ -245,6 +251,53 @@ describe('Testa o controller de transações', () => {
         .expect(StatusCodes.OK, { saldo: 0, pendente: validDebitoData.valor });
 
       await caminhos['/extrato']().auth('valid-token', { type: 'bearer' }).expect(StatusCodes.OK, [credito]);
+    });
+  });
+
+  describe('Verifica a rota PATCH /credito/:id', () => {
+    it('deve permitir somente usuários admin', async () => {
+      await caminhos['/credito/:id']().auth('valid-token', { type: 'bearer' }).expect(StatusCodes.UNAUTHORIZED);
+    });
+
+    it('deve permitir aprovar e rejeitar creditos', async () => {
+      await withFile(async ({ path }) => {
+        let credito: Credito | undefined;
+
+        await caminhos['/credito']()
+          .auth('valid-token', { type: 'bearer' })
+          .field('valor', faker.number.float())
+          .field('referencia', faker.string.hexadecimal())
+          .attach('comprovante', path)
+          .expect(StatusCodes.OK)
+          .expect(({ body }) => (credito = body));
+
+        if (!credito) throw new Error('Credito não foi criado');
+
+        await caminhos['/credito/:id'](credito.id)
+          .auth('valid-token-admin', { type: 'bearer' })
+          .send({ status: 'ok' })
+          .expect(StatusCodes.BAD_REQUEST);
+
+        await caminhos['/credito/:id'](credito.id)
+          .auth('valid-token-admin', { type: 'bearer' })
+          .send({ status: 'aprovado' })
+          .expect(StatusCodes.OK)
+          .expect(({ body }) => {
+            expect(body).toHaveProperty('status', 'aprovado');
+            expect(body).toHaveProperty('revisado_em');
+            expect(body).toHaveProperty('revisado_por', fakeAdmin.sub);
+          });
+
+        await caminhos['/credito/:id'](credito.id)
+          .auth('valid-token-admin', { type: 'bearer' })
+          .send({ status: 'rejeitado' })
+          .expect(StatusCodes.OK)
+          .expect(({ body }) => {
+            expect(body).toHaveProperty('status', 'rejeitado');
+            expect(body).toHaveProperty('revisado_em');
+            expect(body).toHaveProperty('revisado_por', fakeAdmin.sub);
+          });
+      });
     });
   });
 });

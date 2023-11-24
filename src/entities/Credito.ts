@@ -28,6 +28,16 @@ export class Credito extends Transacao {
     return this._revisado_por;
   }
 
+  toJSON() {
+    return {
+      ...super.toJSON(),
+      comprovante: this.comprovante,
+      status: this.status,
+      revisado_em: this.revisado_em,
+      revisado_por: this.revisado_por,
+    };
+  }
+
   constructor(props: ConstructorParameters<typeof Transacao>[0] & { comprovante: string }) {
     super(props);
     this.comprovante = props.comprovante;

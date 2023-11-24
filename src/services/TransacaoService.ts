@@ -5,26 +5,35 @@ import { Debito } from '../entities/Debito';
 import { Transacao } from '../entities/Transacao';
 import { AppDataSource } from '../utils/data-source';
 import { NotFoundError } from '../utils/errors';
+import { FileService, LocalFileService } from './FileService';
 
 type TTransacao = ConstructorParameters<typeof Transacao>[0];
-type TDeposito = ConstructorParameters<typeof Credito>[0];
+type TDeposito = Omit<ConstructorParameters<typeof Credito>[0], 'comprovante'> & {
+  comprovante: { name: string; data: Buffer };
+};
 
 export class TransacaoService {
   private readonly repository: Repository<Transacao>;
+  private readonly fileService: FileService;
 
-  constructor(repository: Repository<Transacao> = AppDataSource.getRepository(Transacao)) {
-    this.repository = repository;
+  constructor(props?: Partial<{ repository: Repository<Transacao>; fileService: FileService }>) {
+    this.repository = props?.repository || AppDataSource.getRepository(Transacao);
+    this.fileService = props?.fileService || new LocalFileService();
   }
 
-  async creditar(deposito: TDeposito) {
-    return this.repository.save(new Credito(deposito));
+  async creditar({ comprovante, ...deposito }: TDeposito): Promise<Credito> {
+    return this.repository.manager.transaction(async (manager) => {
+      const result = await manager.save(new Credito({ ...deposito, comprovante: comprovante.name }));
+      await this.fileService.save(`${result.id}-${comprovante.name}`, comprovante.data);
+      return result;
+    });
   }
 
-  async debitar(debito: TTransacao) {
+  async debitar(debito: TTransacao): Promise<Debito> {
     return this.repository.save(new Debito(debito));
   }
 
-  async revisar(id: string, revisao: { status: 'aprovado' | 'rejeitado'; revisado_por: string }) {
+  async revisar(id: string, revisao: { status: 'aprovado' | 'rejeitado'; revisado_por: string }): Promise<Credito> {
     const deposito = (await this.repository.findOneBy({ id })) as Credito | null;
     if (!deposito) throw new NotFoundError('Depósito não encontrado');
     return this.repository.save(deposito.revisar(revisao.status, revisao.revisado_por));

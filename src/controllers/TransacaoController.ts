@@ -58,28 +58,21 @@ export const createRouter = (service: TransacaoService = new TransacaoService())
       valor: { isNumeric: true, in: 'body', toFloat: true, custom: { options: (value) => value > 0 } },
       referencia: { notEmpty: true, in: 'body' },
       comprovante: {
-        custom: { options: (value, { req }) => !!req.file },
-        errorMessage: 'O campo comprovante é obrigatório',
+        custom: {
+          options: (value, { req }) => !!req.file,
+          errorMessage: 'O campo comprovante é obrigatório',
+        },
       },
       descricao: { optional: true, in: 'body' },
     }),
     async (req: Request<{ destinatario: string }>, res: Response) => {
-      const comprovante = `${Date.now()}-${req.file?.originalname}`;
-
       return res.json(
-        await service
-          .creditar({
-            ...req.data,
-            destinatario: req.data.destinatario || req.user?.sub,
-            emissor: req.user?.sub,
-            comprovante,
-          })
-
-          .then((resposta) => {
-            if (!req.file) throw new ServerError('Arquivo não encontrado');
-            writeFileSync(join(__dirname, '..', '..', 'data', 'uploads', comprovante), req.file.buffer);
-            return resposta;
-          }),
+        await service.creditar({
+          ...req.data,
+          destinatario: req.data.destinatario || req.user?.sub,
+          emissor: req.user?.sub,
+          comprovante: { name: req.file?.originalname, data: req.file?.buffer },
+        }),
       );
     },
   );
