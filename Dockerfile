@@ -5,6 +5,7 @@ COPY package.json ./
 RUN yarn install
 COPY . ./
 RUN yarn build
+RUN yarn test
 
 # --- Release with Alpine ----
 FROM node:18-alpine AS release
