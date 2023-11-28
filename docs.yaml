@@ -219,30 +219,6 @@ components:
         format: uuid
 
   requestBodies:
-    Transacao:
-      description: Dados de transação basica
-      content:
-        multipart/form-data:
-          schema:
-            type: object
-            required:
-              - referencia
-              - valor
-              - emissor
-            properties:
-              referencia:
-                type: string
-                description: Referência da transação
-              valor:
-                type: integer
-                description: Valor da transação
-              emissor:
-                type: string
-                format: uuid
-                description: Identificador do emissor
-              descricao:
-                type: string
-                description: Descrição da transação
     Credito:
       description: Dados da transação de crédito
       content:
@@ -252,7 +228,6 @@ components:
             required:
               - referencia
               - valor
-              - emissor
               - comprovante
             properties:
               destinatario:
@@ -265,10 +240,6 @@ components:
               valor:
                 type: integer
                 description: Valor da transação
-              emissor:
-                type: string
-                format: uuid
-                description: Identificador do emissor
               descricao:
                 type: string
                 description: Descrição da transação
@@ -280,7 +251,7 @@ components:
     Debito:
       description: Dados da transação de débito
       content:
-        multipart/form-data:
+        application/json:
           schema:
             type: object
             required:
@@ -296,7 +267,7 @@ components:
                 type: string
                 description: Referência da transação
               valor:
-                type: integer
+                type: number
                 description: Valor da transação
               descricao:
                 type: string

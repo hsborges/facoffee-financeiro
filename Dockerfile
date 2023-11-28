@@ -9,6 +9,7 @@ RUN yarn build
 # --- Release with Alpine ----
 FROM node:18-alpine AS release
 WORKDIR /app
-COPY --from=build /app ./
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/dist ./dist
 RUN yarn install --production
 CMD PORT=80 yarn start

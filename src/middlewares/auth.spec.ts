@@ -1,14 +1,18 @@
-import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import { Request as ERequest, Response } from 'express';
 
 import { UnauthorizedError } from '../utils/errors';
-import { hasRole, isAuthenticated } from './auth';
+import { SupertokensJwtPayload, hasRole, isAuthenticated } from './auth';
+
+type Request = ERequest & {
+  data: any;
+  user?: SupertokensJwtPayload;
+};
 
 jest.mock('jsonwebtoken', () => ({
   ...jest.requireActual('jsonwebtoken'),
   verify: jest.fn().mockImplementation((token, func, opts, callback) => {
-    if (token === 'valid-token') return callback(null, { sub: 'id', realm_access: { roles: ['admin'] } });
-    else if (token === 'valid-token-2') return callback(null, { sub: 'id', realm_access: { roles: ['notAdmin'] } });
+    if (token === 'valid-token') return callback(null, { sub: 'id', roles: ['admin'] });
+    else if (token === 'valid-token-2') return callback(null, { sub: 'id', roles: [] });
     else callback(new Error('Invalid token'));
   }),
 }));

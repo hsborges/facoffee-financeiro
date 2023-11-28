@@ -1,25 +1,20 @@
-import { KeycloakJwtPayload } from './middlewares/auth';
-
-// to make the file a module and avoid the TypeScript error
-export {};
+import { SupertokensJwtPayload } from './middlewares/auth';
 
 declare global {
   namespace Express {
     export interface Request {
       data: any;
-      user?: KeycloakJwtPayload;
+      user?: SupertokensJwtPayload;
     }
   }
 
   namespace NodeJS {
     interface ProcessEnv {
-      NODE_ENV: 'development' | 'prodroduction' | 'test';
+      NODE_ENV: 'dev' | 'prod' | 'test';
       PORT: string;
-      BASE_URL: string;
-      KEYCLOAK_URL: string;
-      KEYCLOAK_REALM: string;
-      KEYCLOAK_CLIENT_ID: string;
-      LOG_FORMAT?: string;
+      DATABASE_URL: string;
+      AUTH_BASE_URL: string;
+      BASE_URL?: string;
       DATA_DIR?: string;
     }
   }

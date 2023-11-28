@@ -66,7 +66,7 @@ export const createRouter = (service: TransacaoService = new TransacaoService())
       descricao: { optional: true, in: 'body' },
     }),
     async (req: Request<{ destinatario: string }>, res: Response) => {
-      return res.json(
+      return res.status(201).json(
         await service.creditar({
           ...req.data,
           destinatario: req.data.destinatario || req.user?.sub,
@@ -103,7 +103,7 @@ export const createRouter = (service: TransacaoService = new TransacaoService())
       descricao: { optional: true, in: 'body' },
     }),
     async (req: Request, res: Response) => {
-      return res.json(await service.debitar({ ...req.data, emissor: req.user?.sub }));
+      return res.status(201).json(await service.debitar({ ...req.data, emissor: req.user?.sub }));
     },
   );
 

@@ -4,28 +4,18 @@ import jwksRsa from 'jwks-rsa';
 
 import { UnauthorizedError } from '../utils/errors';
 
-export interface KeycloakJwtPayload {
-  iss?: string;
-  sub?: string;
-  aud?: string | string[];
-  exp?: number;
-  nbf?: number;
-  iat?: number;
-  jti?: string;
+export interface SupertokensJwtPayload {
+  iat: number;
+  exp: number;
+  sub: string;
+  tId: string;
+  rsub: string;
+  iss: string;
   roles: string[];
-  scope: string;
-  sid: string;
   email_verified: boolean;
-  name: string;
-  preferred_username: string;
-  given_name: string;
-  family_name: string;
-  email: string;
 }
 
-const client = jwksRsa({
-  jwksUri: `${process.env.KEYCLOAK_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/certs`,
-});
+const client = jwksRsa({ jwksUri: `${process.env.AUTH_BASE_URL}/jwt/jwks.json` });
 
 function getKey(header: any, callback: (err: Error | null, key?: string) => any) {
   client
@@ -35,11 +25,10 @@ function getKey(header: any, callback: (err: Error | null, key?: string) => any)
 }
 
 function verify(token: string) {
-  return new Promise<KeycloakJwtPayload>((resolve, reject) => {
+  return new Promise<SupertokensJwtPayload>((resolve, reject) => {
     jsonwebtoken.verify(token, getKey, {}, function (err, decoded) {
       if (err) return reject(new UnauthorizedError(err.message || JSON.stringify(err)));
-      const { realm_access, ...additional } = decoded as JwtPayload;
-      return resolve({ ...additional, roles: realm_access.roles || [] } as KeycloakJwtPayload);
+      return resolve(decoded as SupertokensJwtPayload);
     });
   });
 }

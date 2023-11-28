@@ -11,10 +11,10 @@ const definition = YAML.load('./docs.yaml');
 
 definition.servers = [{ url: process.env.BASE_URL || `http://localhost:${PORT}/api` }];
 
-const app = createApp();
-
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(definition));
-app.use('/api/transacoes', createRouter());
+const app = createApp([
+  { path: '/docs', router: [...swaggerUi.serve, swaggerUi.setup(definition)] },
+  { path: '/api/transacoes', router: createRouter() },
+]);
 
 AppDataSource.initialize().then(() =>
   app

@@ -7,30 +7,23 @@ import { FileResult, dirSync, file, withFile } from 'tmp-promise';
 
 import { createApp } from '../app';
 import { Credito } from '../entities/Credito';
+import { SupertokensJwtPayload } from '../middlewares/auth';
 import { LocalFileService } from '../services/FileService';
 import { TransacaoService } from '../services/TransacaoService';
 import { AppDataSource } from '../utils/data-source';
 import { createRouter } from './TransacaoController';
 
-function fakeJwtPayload(data: Partial<{ sub: string; roles: Array<string> }> = {}): JwtPayload {
+function fakeJwtPayload(data: Partial<{ sub: string; roles: Array<string> }> = {}): SupertokensJwtPayload {
   const uId = data.sub || faker.string.uuid();
   return {
-    iss: faker.internet.url(),
-    sub: uId,
-    aud: faker.internet.url(),
-    exp: faker.number.int(),
-    nbf: faker.number.int(),
     iat: faker.number.int(),
-    jti: faker.string.uuid(),
-    realm_access: { roles: data.roles || [] },
-    scope: 'openid',
-    sid: uId,
+    exp: faker.number.int(),
+    sub: uId,
+    tId: faker.string.alpha(),
+    rsub: uId,
+    iss: faker.internet.url(),
+    roles: data.roles || [],
     email_verified: faker.datatype.boolean(),
-    name: faker.person.fullName(),
-    preferred_username: faker.internet.userName(),
-    given_name: faker.person.firstName(),
-    family_name: faker.person.lastName(),
-    email: faker.internet.email(),
   };
 }
 
@@ -47,10 +40,10 @@ jest.mock('jsonwebtoken', () => ({
 }));
 
 describe('Testa o controller de transações', () => {
-  const { path, removeCallback } = dirSync({ unsafeCleanup: true });
+  const { name, removeCallback } = dirSync({ unsafeCleanup: true });
 
   const app = createApp([
-    { path: '/', router: createRouter(new TransacaoService({ fileService: new LocalFileService(path) })) },
+    { path: '/', router: createRouter(new TransacaoService({ fileService: new LocalFileService(name) })) },
   ]);
 
   const caminhos = {
@@ -171,7 +164,7 @@ describe('Testa o controller de transações', () => {
       await caminhos['/debito']()
         .auth('valid-token-admin', { type: 'bearer' })
         .send(validDebitoData)
-        .expect(StatusCodes.OK)
+        .expect(StatusCodes.CREATED)
         .expect(({ body }) => {
           debito = body;
           expect(body).toHaveProperty('id');
@@ -235,7 +228,7 @@ describe('Testa o controller de transações', () => {
         .field('referencia', validDebitoData.referencia)
         .field('descricao', validDebitoData.descricao)
         .attach('comprovante', tmpFile?.path || '')
-        .expect(StatusCodes.OK)
+        .expect(StatusCodes.CREATED)
         .expect(({ body }) => {
           credito = body;
           expect(body).toHaveProperty('id');
@@ -260,44 +253,47 @@ describe('Testa o controller de transações', () => {
     });
 
     it('deve permitir aprovar e rejeitar creditos', async () => {
-      await withFile(async ({ path }) => {
-        let credito: Credito | undefined;
+      await withFile(
+        async ({ path }) => {
+          let credito: Credito | undefined;
 
-        await caminhos['/credito']()
-          .auth('valid-token', { type: 'bearer' })
-          .field('valor', faker.number.float())
-          .field('referencia', faker.string.hexadecimal())
-          .attach('comprovante', path)
-          .expect(StatusCodes.OK)
-          .expect(({ body }) => (credito = body));
+          await caminhos['/credito']()
+            .auth('valid-token', { type: 'bearer' })
+            .field('valor', faker.number.float())
+            .field('referencia', faker.string.hexadecimal())
+            .attach('comprovante', path)
+            .expect(StatusCodes.CREATED)
+            .expect(({ body }) => (credito = body));
 
-        if (!credito) throw new Error('Credito não foi criado');
+          if (!credito) throw new Error('Credito não foi criado');
 
-        await caminhos['/credito/:id'](credito.id)
-          .auth('valid-token-admin', { type: 'bearer' })
-          .send({ status: 'ok' })
-          .expect(StatusCodes.BAD_REQUEST);
+          await caminhos['/credito/:id'](credito.id)
+            .auth('valid-token-admin', { type: 'bearer' })
+            .send({ status: 'ok' })
+            .expect(StatusCodes.BAD_REQUEST);
 
-        await caminhos['/credito/:id'](credito.id)
-          .auth('valid-token-admin', { type: 'bearer' })
-          .send({ status: 'aprovado' })
-          .expect(StatusCodes.OK)
-          .expect(({ body }) => {
-            expect(body).toHaveProperty('status', 'aprovado');
-            expect(body).toHaveProperty('revisado_em');
-            expect(body).toHaveProperty('revisado_por', fakeAdmin.sub);
-          });
+          await caminhos['/credito/:id'](credito.id)
+            .auth('valid-token-admin', { type: 'bearer' })
+            .send({ status: 'aprovado' })
+            .expect(StatusCodes.OK)
+            .expect(({ body }) => {
+              expect(body).toHaveProperty('status', 'aprovado');
+              expect(body).toHaveProperty('revisado_em');
+              expect(body).toHaveProperty('revisado_por', fakeAdmin.sub);
+            });
 
-        await caminhos['/credito/:id'](credito.id)
-          .auth('valid-token-admin', { type: 'bearer' })
-          .send({ status: 'rejeitado' })
-          .expect(StatusCodes.OK)
-          .expect(({ body }) => {
-            expect(body).toHaveProperty('status', 'rejeitado');
-            expect(body).toHaveProperty('revisado_em');
-            expect(body).toHaveProperty('revisado_por', fakeAdmin.sub);
-          });
-      });
+          await caminhos['/credito/:id'](credito.id)
+            .auth('valid-token-admin', { type: 'bearer' })
+            .send({ status: 'rejeitado' })
+            .expect(StatusCodes.OK)
+            .expect(({ body }) => {
+              expect(body).toHaveProperty('status', 'rejeitado');
+              expect(body).toHaveProperty('revisado_em');
+              expect(body).toHaveProperty('revisado_por', fakeAdmin.sub);
+            });
+        },
+        { postfix: '.pdf' },
+      );
     });
   });
 });
